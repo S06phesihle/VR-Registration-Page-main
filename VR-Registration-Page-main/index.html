@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>4IR Virtual Lab Signup</title>
+</head>
+<body>
+    <div id="login-box">
+        <div class="left">
+          <h1>Sign up <p style="font-size: x-small;">for the 4IR Virtual Lab</p></h1>
+          
+          <input type="text" name="username" id="user_name" placeholder="Username" />
+          <input type="email" name="email" id="user_email" placeholder="E-mail" />
+          <input type="password" name="password" id="user_password" placeholder="Password" />
+          <input type="password" name="password2" id="password_confirm" placeholder="Retype password" />
+          
+          <input type="submit" name="signup_submit" value="Sign me up" onclick="register()"/>
+          <!--<input type="submit" name="login_submit" value="Log me in" onclick="login()"/>-->
+        </div>
+        
+        <div class="right">
+          <span class="loginwith">Sign in with<br />social network</span>
+          
+          <button class="social-signin facebook">Log in with Facebook</button>
+          <button class="social-signin twitter">Log in with Twitter</button>
+          <button class="social-signin google">Log in with Google+</button>
+        </div>
+        <div class="or">OR</div>
+      </div>
+</body>
+
+<!-- Import Firebase JS SDKs as ES modules -->
+<script type="module">
+  // Import Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { getDatabase, ref, set, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNGVudtel6DIBVmVY2ENhSEehzXCjLqNQ",
+    authDomain: "vr-sign-up-page-with-firebase.firebaseapp.com",
+    projectId: "vr-sign-up-page-with-firebase",
+    storageBucket: "vr-sign-up-page-with-firebase.appspot.com",
+    messagingSenderId: "553280278489",
+    appId: "1:553280278489:web:63f59ca4e7aa025ef893c8"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const database = getDatabase(app);
+
+  // Register function
+  window.register = function register() {
+    const userName = document.getElementById('user_name').value;
+    const email = document.getElementById('user_email').value;
+    const password = document.getElementById('user_password').value;
+    const confirm_password = document.getElementById('password_confirm').value;
+
+    // Validate input fields
+    if (!validate_email(email)) {
+      alert('Email is invalid');
+      return;
+    }
+    if (!validate_password(password)) {
+      alert('Password is invalid');
+      return;
+    }
+    if (!validate_fields(userName) || !validate_fields(email) || !validate_fields(password) || !validate_fields(confirm_password)) {
+      alert('All fields are mandatory!');
+      return;
+    }
+    if (confirm_password!=password) {
+      alert("Passwords don't match!");
+      return;
+    }
+
+    // Create User
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+
+        // Add user to Firebase Database
+        const database_ref = ref(database, 'users/' + user.uid);
+
+        // User data
+        const user_data = {
+          email: email,
+          full_name: userName,
+          last_login: Date.now()
+        };
+        set(database_ref, user_data);
+
+        alert('User Created');
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  // Login function
+  window.login = function login() {
+    const email = document.getElementById('user_email').value;
+    const password = document.getElementById('user_password').value;
+
+    // Validate input fields
+    if (!validate_email(email)) {
+      alert('Email is invalid');
+      return;
+    }
+    if (!validate_password(password)) {
+      alert('Password is invalid');
+      return;
+    }
+
+    // Sign in user
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+
+        // Update last login in Firebase Database
+        const database_ref = ref(database, 'users/' + user.uid);
+
+        // Update last login time
+        const user_data = {
+          last_login: Date.now()
+        };
+        update(database_ref, user_data);
+
+        alert('User Logged In');
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  };
+
+  function validate_email(email) {
+    const expression = /^[^@]+@\w+(\.\w+)+\w$/;
+    return expression.test(email);
+  }
+
+  function validate_password(password) {
+    return /[A-Z]/.test(password) &&
+           /[a-z]/.test(password) &&
+           /[0-9]/.test(password) &&
+           /[^A-Za-z0-9]/.test(password) &&
+           password.length > 5;
+  }
+
+  function validate_fields(field) {
+    return field && field.length > 0;
+  }
+</script>
+</html>
