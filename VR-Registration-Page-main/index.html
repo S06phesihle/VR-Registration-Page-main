@@ -66,7 +66,7 @@
       return;
     }
     if (!validate_password(password)) {
-      alert('Password is invalid');
+      alert('Password is invalid, password must contain one Uppercase, special character and numbers');
       return;
     }
     if (!validate_fields(userName) || !validate_fields(email) || !validate_fields(password) || !validate_fields(confirm_password)) {
